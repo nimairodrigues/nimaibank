@@ -50,10 +50,11 @@ Cria uma nova conta.
 **Regras:**
 
 - `username`, `senha` e `idade` são obrigatórios.
+- `username` e `senha` só podem conter letras, números, `_` e `.` (sem espaços nem outros símbolos).
 - `idade` precisa ser numérica e estar entre 0 e 120.
 - É preciso marcar ao menos um tipo de conta (`contaCorrente` ou `contaPoupanca`).
 - Conta corrente exige idade mínima de 18 anos.
-- Não pode haver dois usuários com o mesmo `username`.
+- Não pode haver dois usuários com o mesmo `username` — a comparação **não diferencia maiúsculas de minúsculas** (`"joao"` e `"JOAO"` são o mesmo usuário).
 - Se `contaCorrente` for `true`, a conta já nasce com saldo de R$ 5,00 (registrado como uma movimentação de entrada).
 
 **Resposta de sucesso** (`201`):
@@ -73,10 +74,11 @@ Cria uma nova conta.
 | Status | Motivo |
 |---|---|
 | `400` | Campos obrigatórios faltando |
+| `400` | `username` ou `senha` com caractere não permitido (fora de letras, números, `_` e `.`) |
 | `400` | `idade` fora do intervalo permitido (0 a 120) ou não numérica |
 | `400` | Nenhum tipo de conta selecionado |
 | `400` | Conta corrente com idade menor que 18 anos |
-| `409` | Já existe um usuário com esse `username` |
+| `409` | Já existe um usuário com esse `username` (comparação sem diferenciar maiúsculas/minúsculas) |
 
 ### Listar contas
 
@@ -103,6 +105,8 @@ Retorna todas as contas cadastradas (sem a senha).
 `GET /api/contas/:username?senha=...`
 
 Busca os dados de uma conta pelo `username`. O parâmetro `senha` (query string) é opcional; se informado, o backend confere se a senha bate e devolve isso no campo `senhaConfere`. É essa rota que a tela de login usa para autenticar.
+
+A busca por `username` não diferencia maiúsculas de minúsculas: `"joao"`, `"JOAO"` e `"Joao"` encontram a mesma conta.
 
 **Resposta:**
 
@@ -239,7 +243,11 @@ Pelo menos um dos dois campos deve ser enviado.
 
 `DELETE /api/contas/:username`
 
-Remove a conta com o `username` informado.
+Remove a conta com o `username` informado, junto com todo o histórico de movimentações. É a rota usada pelo botão "Excluir conta" na tela [Meu perfil](README.md#8-meu-perfil-ativardesativar-tipos-de-conta-e-excluir-conta).
+
+**Regras:**
+
+- **O saldo da conta corrente e o saldo da poupança precisam estar zerados** — mesma exigência da rota [Desativar tipo de conta](#desativar-tipo-de-conta). Não é possível excluir uma conta com saldo positivo em qualquer um dos dois tipos.
 
 **Resposta:** `{ "ok": true }`
 
@@ -247,6 +255,7 @@ Remove a conta com o `username` informado.
 
 | Status | Motivo |
 |---|---|
+| `400` | Saldo maior que zero na conta corrente ou na poupança |
 | `404` | Conta não encontrada |
 
 ## Movimentações

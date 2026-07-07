@@ -14,7 +14,7 @@ Protótipo de um banco digital simples, feito para fins de estudo/teste. Permite
   - [5. Conta poupança](#5-conta-poupança)
   - [6. Rendimento da poupança](#6-rendimento-da-poupança)
   - [7. Extrato da poupança (com paginação)](#7-extrato-da-poupança-com-paginação)
-  - [8. Meu perfil (ativar/desativar tipos de conta)](#8-meu-perfil-ativardesativar-tipos-de-conta)
+  - [8. Meu perfil (ativar/desativar tipos de conta e excluir conta)](#8-meu-perfil-ativardesativar-tipos-de-conta-e-excluir-conta)
   - [9. Transferências](#9-transferências)
   - [10. Sair (logout)](#10-sair-logout)
 
@@ -54,14 +54,15 @@ Regras de validação:
 - É preciso marcar ao menos um tipo de conta.
 - Conta corrente só pode ser aberta por maiores de 18 anos.
 - Usuário e senha têm limite de 6 caracteres (o botão de criar conta fica desabilitado se ultrapassar).
+- Usuário e senha só podem conter letras, números, `_` e `.` — espaços e outros símbolos são bloqueados, tanto na digitação quanto no envio (o botão de criar conta fica desabilitado se houver caractere inválido).
 - Idade deve estar entre 0 e 120.
-- Não pode haver dois usuários com o mesmo nome (contas duplicadas são rejeitadas).
+- Não pode haver dois usuários com o mesmo nome (contas duplicadas são rejeitadas). A comparação não diferencia maiúsculas de minúsculas: "joao" e "JOAO" são tratados como o mesmo usuário.
 
 Ao criar uma conta corrente, o banco dá um "presente de boas-vindas" de **R$ 5,00** de saldo inicial, que já aparece registrado no extrato.
 
 ### 2. Login
 
-Tela inicial do sistema. O usuário informa usuário e senha; se estiverem corretos, é levado para a tela de boas-vindas. Caso contrário, exibe a mensagem "Usuario ou senha invalidos."
+Tela inicial do sistema. O usuário informa usuário e senha; se estiverem corretos, é levado para a tela de boas-vindas. Caso contrário, exibe a mensagem "Usuario ou senha invalidos." O usuário informado no login não diferencia maiúsculas de minúsculas.
 
 ### 3. Tela inicial (boas-vindas)
 
@@ -102,7 +103,7 @@ O valor do rendimento é somado ao saldo e também aparece como uma entrada no e
 
 Assim como o extrato da conta corrente, mas com paginação: mostra até 10 movimentações por página, com botões "Anterior" e "Próxima" quando há mais registros do que cabem em uma página.
 
-### 8. Meu perfil (ativar/desativar tipos de conta)
+### 8. Meu perfil (ativar/desativar tipos de conta e excluir conta)
 
 Tela acessada pelo botão "Meu perfil" na tela inicial. Mostra, para cada tipo de conta (corrente e poupança), um botão que alterna entre "Ativar" e "Desativar" conforme o estado atual:
 
@@ -110,6 +111,8 @@ Tela acessada pelo botão "Meu perfil" na tela inicial. Mostra, para cada tipo d
 - **Desativar** só é permitido se o saldo desse tipo de conta estiver zerado. Uma conta desativada continua existindo (histórico preservado), mas deixa de poder enviar ou receber dinheiro até ser reativada.
 
 Enquanto um tipo de conta estiver desativado, o botão/tela correspondente desaparece da tela inicial (veja [Tela inicial](#3-tela-inicial-boas-vindas)).
+
+A tela também tem o botão **Excluir conta**, que remove definitivamente a conta e todo o seu histórico. Só é permitido excluir se o saldo da conta corrente e o saldo da poupança estiverem zerados (mesma exigência do "Desativar"); caso contrário, é exibida uma mensagem de erro pedindo para zerar o saldo antes. Como a ação é irreversível, é pedida uma confirmação explícita antes de excluir. Ao concluir com sucesso, o usuário é deslogado automaticamente e volta para a tela de login.
 
 ### 9. Transferências
 
