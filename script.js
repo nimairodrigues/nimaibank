@@ -408,10 +408,33 @@ function toggleConta(tipo) {
   return ativa ? desativarConta(tipo) : ativarConta(tipo);
 }
 
+// Exclui a conta do usuario logado. O backend recusa a exclusao caso o
+// saldo corrente ou poupanca nao esteja zerado, para nao apagar dinheiro
+// sem aviso. Acao irreversivel: exige confirmacao explicita antes de chamar a API.
+async function excluirContaUsuario() {
+  const confirmado = confirm('Tem certeza que deseja excluir sua conta? Essa acao e irreversivel e remove todo o historico.');
+  if (!confirmado) return;
+
+  const erro = document.getElementById('erro-perfil');
+
+  const resposta = await fetch('/api/contas/' + encodeURIComponent(usuarioLogado), { method: 'DELETE' });
+  const dados = await resposta.json();
+
+  if (!resposta.ok) {
+    erro.textContent = dados.erro || 'Nao foi possivel excluir a conta.';
+    mostrar(erro);
+    return;
+  }
+
+  esconder('tela-perfil');
+  sair();
+}
+
 document.getElementById('btn-perfil').addEventListener('click', abrirPerfil);
 document.getElementById('btn-voltar-perfil').addEventListener('click', fecharPerfil);
 document.getElementById('btn-toggle-corrente').addEventListener('click', () => toggleConta('corrente'));
 document.getElementById('btn-toggle-poupanca').addEventListener('click', () => toggleConta('poupanca'));
+document.getElementById('btn-excluir-conta').addEventListener('click', excluirContaUsuario);
 
 async function aplicarRendimentoPoupanca() {
   try {
@@ -752,6 +775,9 @@ function irParaCadastro() {
 }
 
 const LIMITE_CARACTERES = 6;
+// Apenas letras, numeros, "_" e "." — sem espacos e sem simbolos. Espelha
+// CARACTERES_PERMITIDOS do backend (server.js).
+const CARACTERES_PERMITIDOS = /^[A-Za-z0-9_.]*$/;
 const IDADE_MINIMA = 0;
 const IDADE_MAXIMA = 120;
 const IDADE_MINIMA_CONTA_CORRENTE = 18;
@@ -785,19 +811,25 @@ function validarLimiteCadastro() {
   const contaCorrente = document.getElementById('cad-tipo-conta-corrente').checked;
   const contaPoupanca = document.getElementById('cad-tipo-conta-poupanca').checked;
 
-  const usernameInvalido = username.length >= LIMITE_CARACTERES;
-  const senhaInvalida = senha.length >= LIMITE_CARACTERES;
+  const usernameCaractereInvalido = !CARACTERES_PERMITIDOS.test(username);
+  const senhaCaractereInvalida = !CARACTERES_PERMITIDOS.test(senha);
+  const usernameInvalido = username.length >= LIMITE_CARACTERES || usernameCaractereInvalido;
+  const senhaInvalida = senha.length >= LIMITE_CARACTERES || senhaCaractereInvalida;
   const idadeInvalida = idade !== '' && (idade < IDADE_MINIMA || idade > IDADE_MAXIMA);
   const contaCorrenteMenorIdade = contaCorrente && idade !== '' && idade < IDADE_MINIMA_CONTA_CORRENTE;
   const tipoContaInvalido = (!contaCorrente && !contaPoupanca) || contaCorrenteMenorIdade;
 
-  if (usernameInvalido) {
+  if (usernameCaractereInvalido) {
+    exibirErroCampo('cad-username', 'Use apenas letras, numeros, "_" e ".", sem espacos.');
+  } else if (usernameInvalido) {
     exibirErroCampo('cad-username', 'O campo de usuario atingiu o limite maximo de caracteres.');
   } else {
     ocultarErroCampo('cad-username');
   }
 
-  if (senhaInvalida) {
+  if (senhaCaractereInvalida) {
+    exibirErroCampo('cad-senha', 'Use apenas letras, numeros, "_" e ".", sem espacos.');
+  } else if (senhaInvalida) {
     exibirErroCampo('cad-senha', 'O campo de senha atingiu o limite maximo de caracteres.');
   } else {
     ocultarErroCampo('cad-senha');

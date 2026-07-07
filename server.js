@@ -13,6 +13,9 @@ const IDADE_MAXIMA = 120;
 const IDADE_MINIMA_CONTA_CORRENTE = 18;
 const LIMITE_CARACTERES_SENHA = 6;
 
+// Apenas letras, numeros, "_" e "." — sem espacos e sem simbolos.
+const CARACTERES_PERMITIDOS = /^[A-Za-z0-9_.]+$/;
+
 function idadeValida(idade) {
   return typeof idade === 'number' && idade >= IDADE_MINIMA && idade <= IDADE_MAXIMA;
 }
@@ -62,6 +65,12 @@ app.post('/api/contas', (req, res) => {
   if (!username || !senha || !idade) {
     return res.status(400).json({ erro: 'Preencha todos os campos.' });
   }
+  if (!CARACTERES_PERMITIDOS.test(username)) {
+    return res.status(400).json({ erro: 'O usuario deve conter apenas letras, numeros, "_" e ".", sem espacos.' });
+  }
+  if (!CARACTERES_PERMITIDOS.test(senha)) {
+    return res.status(400).json({ erro: 'A senha deve conter apenas letras, numeros, "_" e ".", sem espacos.' });
+  }
   if (!idadeValida(idade)) {
     return res.status(400).json({ erro: `A idade deve estar entre ${IDADE_MINIMA} e ${IDADE_MAXIMA}.` });
   }
@@ -72,7 +81,7 @@ app.post('/api/contas', (req, res) => {
     return res.status(400).json({ erro: 'Conta corrente exige idade minima de 18 anos.' });
   }
 
-  const existente = db.prepare('SELECT id FROM contas WHERE username = ?').get(username);
+  const existente = db.prepare('SELECT id FROM contas WHERE username = ? COLLATE NOCASE').get(username);
   if (existente) {
     return res.status(409).json({ erro: 'Usuario ja existe.' });
   }
@@ -99,7 +108,7 @@ app.get('/api/contas', (_req, res) => {
 // Read (uma conta) — tambem usado para validar login
 app.get('/api/contas/:username', (req, res) => {
   const conta = buscarContaOu404(
-    'SELECT username, senha, idade, conta_corrente, conta_poupanca, saldo_corrente, saldo_poupanca, conta_corrente_ativa, conta_poupanca_ativa FROM contas WHERE username = ?',
+    'SELECT username, senha, idade, conta_corrente, conta_poupanca, saldo_corrente, saldo_poupanca, conta_corrente_ativa, conta_poupanca_ativa FROM contas WHERE username = ? COLLATE NOCASE',
     req.params.username, res
   );
   if (!conta) return;
@@ -120,7 +129,7 @@ app.get('/api/contas/:username', (req, res) => {
 
 // Read (movimentacoes de uma conta)
 app.get('/api/contas/:username/movimentacoes', (req, res) => {
-  const conta = buscarContaOu404('SELECT id FROM contas WHERE username = ?', req.params.username, res);
+  const conta = buscarContaOu404('SELECT id FROM contas WHERE username = ? COLLATE NOCASE', req.params.username, res);
   if (!conta) return;
 
   const movimentacoes = db.prepare(
@@ -132,7 +141,7 @@ app.get('/api/contas/:username/movimentacoes', (req, res) => {
 
 // Deposito na conta corrente
 app.post('/api/contas/:username/deposito-corrente', (req, res) => {
-  const conta = buscarContaOu404('SELECT id, conta_corrente, conta_corrente_ativa, saldo_corrente FROM contas WHERE username = ?', req.params.username, res);
+  const conta = buscarContaOu404('SELECT id, conta_corrente, conta_corrente_ativa, saldo_corrente FROM contas WHERE username = ? COLLATE NOCASE', req.params.username, res);
   if (!conta) return;
 
   if (!tipoContaAtivaOuErro(res, conta.conta_corrente, conta.conta_corrente_ativa,
@@ -153,7 +162,7 @@ app.post('/api/contas/:username/deposito-corrente', (req, res) => {
 
 // Saque na conta corrente
 app.post('/api/contas/:username/saque-corrente', (req, res) => {
-  const conta = buscarContaOu404('SELECT id, conta_corrente, conta_corrente_ativa, saldo_corrente FROM contas WHERE username = ?', req.params.username, res);
+  const conta = buscarContaOu404('SELECT id, conta_corrente, conta_corrente_ativa, saldo_corrente FROM contas WHERE username = ? COLLATE NOCASE', req.params.username, res);
   if (!conta) return;
 
   if (!tipoContaAtivaOuErro(res, conta.conta_corrente, conta.conta_corrente_ativa,
@@ -177,7 +186,7 @@ app.post('/api/contas/:username/saque-corrente', (req, res) => {
 
 // Saque na conta poupanca
 app.post('/api/contas/:username/saque-poupanca', (req, res) => {
-  const conta = buscarContaOu404('SELECT id, conta_poupanca, conta_poupanca_ativa, saldo_poupanca FROM contas WHERE username = ?', req.params.username, res);
+  const conta = buscarContaOu404('SELECT id, conta_poupanca, conta_poupanca_ativa, saldo_poupanca FROM contas WHERE username = ? COLLATE NOCASE', req.params.username, res);
   if (!conta) return;
 
   if (!tipoContaAtivaOuErro(res, conta.conta_poupanca, conta.conta_poupanca_ativa,
@@ -201,7 +210,7 @@ app.post('/api/contas/:username/saque-poupanca', (req, res) => {
 
 // Deposito na conta poupanca
 app.post('/api/contas/:username/deposito-poupanca', (req, res) => {
-  const conta = buscarContaOu404('SELECT id, conta_poupanca, conta_poupanca_ativa, saldo_poupanca FROM contas WHERE username = ?', req.params.username, res);
+  const conta = buscarContaOu404('SELECT id, conta_poupanca, conta_poupanca_ativa, saldo_poupanca FROM contas WHERE username = ? COLLATE NOCASE', req.params.username, res);
   if (!conta) return;
 
   if (!tipoContaAtivaOuErro(res, conta.conta_poupanca, conta.conta_poupanca_ativa,
@@ -229,7 +238,7 @@ const TAXA_DIARIA_POUPANCA = TAXA_MENSAL_POUPANCA / 30;
 // Aplica o rendimento pendente da poupanca (chamado ao abrir a tela de conta poupanca)
 app.post('/api/contas/:username/render-poupanca', (req, res) => {
   const conta = buscarContaOu404(
-    'SELECT id, conta_poupanca, saldo_poupanca, poupanca_ultimo_rendimento FROM contas WHERE username = ?',
+    'SELECT id, conta_poupanca, saldo_poupanca, poupanca_ultimo_rendimento FROM contas WHERE username = ? COLLATE NOCASE',
     req.params.username, res
   );
   if (!conta) return;
@@ -279,7 +288,7 @@ app.post('/api/contas/:username/transferencia', (req, res) => {
   }
 
   const conta = buscarContaOu404(
-    'SELECT id, conta_corrente, conta_poupanca, saldo_corrente, saldo_poupanca, conta_corrente_ativa, conta_poupanca_ativa FROM contas WHERE username = ?',
+    'SELECT id, conta_corrente, conta_poupanca, saldo_corrente, saldo_poupanca, conta_corrente_ativa, conta_poupanca_ativa FROM contas WHERE username = ? COLLATE NOCASE',
     req.params.username, res
   );
   if (!conta) return;
@@ -303,7 +312,7 @@ app.post('/api/contas/:username/transferencia', (req, res) => {
   }
 
   const contaDestinoRow = buscarContaOu404(
-    'SELECT id, conta_corrente, conta_poupanca, conta_corrente_ativa, conta_poupanca_ativa FROM contas WHERE username = ?',
+    'SELECT id, conta_corrente, conta_poupanca, conta_corrente_ativa, conta_poupanca_ativa FROM contas WHERE username = ? COLLATE NOCASE',
     destinatario, res, 'Conta destinataria nao encontrada.'
   );
   if (!contaDestinoRow) return;
@@ -346,7 +355,7 @@ app.post('/api/contas/:username/transferencia-interna', (req, res) => {
   }
 
   const conta = buscarContaOu404(
-    'SELECT id, conta_corrente, conta_poupanca, saldo_corrente, saldo_poupanca, conta_corrente_ativa, conta_poupanca_ativa FROM contas WHERE username = ?',
+    'SELECT id, conta_corrente, conta_poupanca, saldo_corrente, saldo_poupanca, conta_corrente_ativa, conta_poupanca_ativa FROM contas WHERE username = ? COLLATE NOCASE',
     req.params.username, res
   );
   if (!conta) return;
@@ -393,7 +402,7 @@ app.put('/api/contas/:username/ativar-conta', (req, res) => {
   }
 
   const conta = buscarContaOu404(
-    'SELECT id, idade, conta_corrente, conta_poupanca, conta_corrente_ativa, conta_poupanca_ativa FROM contas WHERE username = ?',
+    'SELECT id, idade, conta_corrente, conta_poupanca, conta_corrente_ativa, conta_poupanca_ativa FROM contas WHERE username = ? COLLATE NOCASE',
     req.params.username, res
   );
   if (!conta) return;
@@ -430,7 +439,7 @@ app.put('/api/contas/:username/desativar-conta', (req, res) => {
   }
 
   const conta = buscarContaOu404(
-    'SELECT id, conta_corrente, conta_poupanca, conta_corrente_ativa, conta_poupanca_ativa, saldo_corrente, saldo_poupanca FROM contas WHERE username = ?',
+    'SELECT id, conta_corrente, conta_poupanca, conta_corrente_ativa, conta_poupanca_ativa, saldo_corrente, saldo_poupanca FROM contas WHERE username = ? COLLATE NOCASE',
     req.params.username, res
   );
   if (!conta) return;
@@ -457,7 +466,7 @@ app.put('/api/contas/:username/desativar-conta', (req, res) => {
 
 // Update
 app.put('/api/contas/:username', (req, res) => {
-  const conta = buscarContaOu404('SELECT id FROM contas WHERE username = ?', req.params.username, res);
+  const conta = buscarContaOu404('SELECT id FROM contas WHERE username = ? COLLATE NOCASE', req.params.username, res);
   if (!conta) return;
 
   const { senha, idade } = req.body || {};
@@ -479,17 +488,25 @@ app.put('/api/contas/:username', (req, res) => {
   res.json({ ok: true });
 });
 
-// Delete
-const excluirConta = db.transaction((username) => {
-  const conta = db.prepare('SELECT id FROM contas WHERE username = ?').get(username);
-  if (!conta) return 0;
-  db.prepare('DELETE FROM movimentacoes WHERE conta_id = ?').run(conta.id);
-  return db.prepare('DELETE FROM contas WHERE id = ?').run(conta.id).changes;
+// Delete — mesma regra do desativar: so exclui com saldo zerado, para nao
+// apagar dinheiro do usuario sem aviso.
+const excluirConta = db.transaction((contaId) => {
+  db.prepare('DELETE FROM movimentacoes WHERE conta_id = ?').run(contaId);
+  db.prepare('DELETE FROM contas WHERE id = ?').run(contaId);
 });
 
 app.delete('/api/contas/:username', (req, res) => {
-  const changes = excluirConta(req.params.username);
-  if (changes === 0) return res.status(404).json({ erro: 'Conta nao encontrada.' });
+  const conta = buscarContaOu404(
+    'SELECT id, saldo_corrente, saldo_poupanca FROM contas WHERE username = ? COLLATE NOCASE',
+    req.params.username, res
+  );
+  if (!conta) return;
+
+  if (conta.saldo_corrente > 0 || conta.saldo_poupanca > 0) {
+    return res.status(400).json({ erro: 'Nao e possivel excluir uma conta com saldo. Zere o saldo antes de excluir.' });
+  }
+
+  excluirConta(conta.id);
   res.json({ ok: true });
 });
 
