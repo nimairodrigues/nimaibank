@@ -62,7 +62,7 @@ function registrarMovimentacao(contaId, contaTipo, tipo, valor, descricao) {
 // Create
 app.post('/api/contas', (req, res) => {
   const { username, senha, idade, contaCorrente, contaPoupanca } = req.body || {};
-  if (!username || !senha || !idade) {
+  if (!username || !senha || idade === undefined || idade === null || idade === '') {
     return res.status(400).json({ erro: 'Preencha todos os campos.' });
   }
   if (!CARACTERES_PERMITIDOS.test(username)) {
@@ -470,7 +470,8 @@ app.put('/api/contas/:username', (req, res) => {
   if (!conta) return;
 
   const { senha, idade } = req.body || {};
-  if (!senha && !idade) {
+  const idadeInformada = idade !== undefined && idade !== null && idade !== '';
+  if (!senha && !idadeInformada) {
     return res.status(400).json({ erro: 'Informe senha e/ou idade para atualizar.' });
   }
 
@@ -478,12 +479,12 @@ app.put('/api/contas/:username', (req, res) => {
     return res.status(400).json({ erro: 'O campo de senha atingiu o limite maximo de caracteres.' });
   }
 
-  if (idade && !idadeValida(idade)) {
+  if (idadeInformada && !idadeValida(idade)) {
     return res.status(400).json({ erro: `A idade deve estar entre ${IDADE_MINIMA} e ${IDADE_MAXIMA}.` });
   }
 
   if (senha) db.prepare('UPDATE contas SET senha = ? WHERE id = ?').run(senha, conta.id);
-  if (idade) db.prepare('UPDATE contas SET idade = ? WHERE id = ?').run(idade, conta.id);
+  if (idadeInformada) db.prepare('UPDATE contas SET idade = ? WHERE id = ?').run(idade, conta.id);
 
   res.json({ ok: true });
 });
