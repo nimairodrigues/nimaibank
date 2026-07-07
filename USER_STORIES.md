@@ -27,7 +27,7 @@ Histórias de usuário de cada funcionalidade do sistema, escritas na dupla vis�
 
 ### Regras de negócio (visão PO)
 
-- Usuário, senha e idade são obrigatórios; usuário e senha têm limite de 6 caracteres.
+- Usuário, senha e idade são obrigatórios; usuário e senha aceitam no máximo 5 caracteres (bloqueado a partir de 6).
 - Usuário e senha só podem conter letras, números, `_` e `.` — espaços e outros caracteres especiais são bloqueados.
 - É necessário marcar ao menos um tipo de conta (corrente e/ou poupança).
 - Conta corrente exige idade mínima de 18 anos.
@@ -46,7 +46,7 @@ Histórias de usuário de cada funcionalidade do sistema, escritas na dupla vis�
 - [ ] Dado que informo idade não numérica, recebo `400`.
 - [ ] Dado que tento cadastrar um `username` já existente, recebo `409` "Usuario ja existe.".
 - [ ] Dado que tento cadastrar um `username` já existente em outra variação de caixa (ex.: "JOAO" quando "joao" já existe), recebo `409` "Usuario ja existe.".
-- [ ] Dado que usuário ou senha ultrapassam 6 caracteres, o botão de criar conta permanece desabilitado no front-end.
+- [ ] Dado que usuário ou senha atingem 6 caracteres (ultrapassando o máximo de 5), o botão de criar conta permanece desabilitado no front-end.
 - [ ] Dado que informo usuário ou senha com espaço ou caractere especial (ex.: `#`, `<`, `>`, `'`, `"`, ` `), o botão de criar conta permanece desabilitado no front-end e/ou recebo `400` do back-end.
 - [ ] Dado que informo usuário e senha usando apenas letras, números, `_` e `.`, o cadastro é aceito normalmente.
 - [ ] Verificar que o bônus de R$ 5,00 aparece corretamente registrado no extrato como entrada "Presente de boas-vindas do banco" logo após o cadastro.
@@ -277,7 +277,7 @@ Histórias de usuário de cada funcionalidade do sistema, escritas na dupla vis�
 ### Regras de negócio (visão PO)
 
 - Ao menos um dos campos (senha ou idade) deve ser enviado.
-- Senha deve respeitar o limite de 6 caracteres.
+- Senha deve respeitar o máximo de 5 caracteres.
 - Idade deve estar entre 0 e 120 e ser numérica.
 
 ### Critérios de aceite (visão QA)

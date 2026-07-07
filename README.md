@@ -53,7 +53,7 @@ Regras de validação:
 - Todos os campos são obrigatórios.
 - É preciso marcar ao menos um tipo de conta.
 - Conta corrente só pode ser aberta por maiores de 18 anos.
-- Usuário e senha têm limite de 6 caracteres (o botão de criar conta fica desabilitado se ultrapassar).
+- Usuário e senha aceitam no máximo 5 caracteres (o botão de criar conta fica desabilitado a partir de 6).
 - Usuário e senha só podem conter letras, números, `_` e `.` — espaços e outros símbolos são bloqueados, tanto na digitação quanto no envio (o botão de criar conta fica desabilitado se houver caractere inválido).
 - Idade deve estar entre 0 e 120.
 - Não pode haver dois usuários com o mesmo nome (contas duplicadas são rejeitadas). A comparação não diferencia maiúsculas de minúsculas: "joao" e "JOAO" são tratados como o mesmo usuário.
