@@ -1,0 +1,241 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: sans-serif;
+  background: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+.card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+  color: #222;
+}
+
+label {
+  display: block;
+  font-size: 0.875rem;
+  color: #555;
+  margin-bottom: 0.25rem;
+  text-align: left;
+}
+
+input {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input:focus {
+  border-color: #4f6ef7;
+}
+
+button {
+  width: 100%;
+  padding: 0.7rem;
+  background: #4f6ef7;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button:not(:disabled):hover {
+  background: #3a57d6;
+}
+
+button:disabled {
+  background: #a9b4d6;
+  color: #eef1fe;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-sair {
+  background: #888;
+  margin-top: 1rem;
+}
+
+.btn-sair:hover {
+  background: #666;
+}
+
+.btn-secundario {
+  background: transparent;
+  color: #4f6ef7;
+  border: 1px solid #4f6ef7;
+  margin-top: 0.75rem;
+}
+
+.btn-secundario:hover {
+  background: #eef1fe;
+}
+
+.btn-secundario:disabled {
+  background: transparent;
+  color: #aab0c8;
+  border-color: #aab0c8;
+}
+
+.erro {
+  color: #c0392b;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  display: none;
+  text-align: left;
+}
+
+/* Grupo de checkbox (tipo de conta): reseta o estilo generico de "input"
+   para exibir a caixa de selecao alinhada com seu label na mesma linha. */
+.campo-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.campo-checkbox input[type="checkbox"] {
+  display: inline-block;
+  width: auto;
+  padding: 0;
+  border: none;
+  margin: 0;
+}
+
+.campo-checkbox label {
+  display: inline;
+  margin-bottom: 0;
+}
+
+/* Span de erro por campo (padrao de validacao da tela de cadastro). */
+.erro-campo {
+  color: #c0392b;
+  font-size: 0.8rem;
+  margin: 0.2rem 0 0.5rem;
+  display: none;
+  text-align: left;
+}
+
+#tela-boas-vindas {
+  display: none;
+}
+
+#tela-extrato {
+  display: none;
+}
+
+#tela-conta-poupanca {
+  display: none;
+}
+
+#tela-extrato-poupanca {
+  display: none;
+}
+
+#tela-transferencia {
+  display: none;
+}
+
+#tela-perfil {
+  display: none;
+}
+
+.sucesso {
+  color: #2ecc71;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  display: none;
+  text-align: left;
+}
+
+#tela-boas-vindas #mensagem {
+  color: #2ecc71;
+  margin-bottom: 2rem;
+}
+
+#extrato {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+#extrato h1 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: #222;
+}
+
+#extrato-poupanca {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+#extrato-lista,
+#extrato-poupanca-lista {
+  list-style: none;
+  font-size: 0.85rem;
+  color: #444;
+}
+
+#extrato-lista li,
+#extrato-poupanca-lista li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+#extrato-vazio,
+#extrato-poupanca-vazio {
+  font-size: 0.85rem;
+  color: #777;
+}
+
+#extrato-poupanca-paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+#extrato-poupanca-paginacao button {
+  width: auto;
+}
+
+#extrato-poupanca-pagina-atual {
+  font-size: 0.85rem;
+  color: #444;
+}
+
+#tela-cadastro {
+  display: none;
+}
+
+#cadastro-sucesso h1 {
+  color: #2ecc71;
+  margin-bottom: 2rem;
+}

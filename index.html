@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Acesse sua conta NimaiBank.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏦</text></svg>">
+  <title>Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="card" id="card">
+
+    <!-- Tela de Login -->
+    <div id="tela-login">
+      <h1>Login</h1>
+      <form id="login-form">
+        <label for="username">Usuario</label>
+        <input type="text" id="username" placeholder="Digite seu usuario" required autocomplete="username">
+
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" placeholder="Digite sua senha" required autocomplete="current-password">
+
+        <p class="erro" id="erro">Preencha todos os campos.</p>
+
+        <button type="submit" id="btn-logar">Logar</button>
+        <button type="button" class="btn-secundario" id="btn-ir-cadastro">Criar conta</button>
+      </form>
+    </div>
+
+    <!-- Tela de Boas-vindas -->
+    <div id="tela-boas-vindas">
+      <h1>Tela inicial</h1>
+      <h1 id="mensagem"></h1>
+      <p class="erro" id="aviso-sem-conta-ativa" style="display:none;">Voce nao possui nenhum tipo de conta ativo. Ative uma conta corrente ou poupanca em "Meu perfil" para usar as funcionalidades do banco.</p>
+      <p id="saldo-corrente" style="display:none;"></p>
+
+      <form id="saque-corrente-form">
+        <label for="valor-saque-corrente">Valor do saque</label>
+        <input type="number" id="valor-saque-corrente" placeholder="Digite o valor" step="0.01" min="0" required>
+        <p class="erro" id="erro-saque-corrente"></p>
+        <button type="submit">Sacar</button>
+      </form>
+
+      <form id="deposito-corrente-form">
+        <label for="valor-deposito-corrente">Valor do deposito</label>
+        <input type="number" id="valor-deposito-corrente" placeholder="Digite o valor" step="0.01" min="0" required>
+        <p class="erro" id="erro-deposito-corrente"></p>
+        <button type="submit">Depositar</button>
+      </form>
+
+      <button type="button" class="btn-secundario" id="btn-extrato">Extrato</button>
+      <button type="button" class="btn-secundario" id="btn-conta-poupanca">Conta poupança</button>
+      <button type="button" class="btn-secundario" id="btn-transferencia" style="display:none;">Transferir</button>
+      <button type="button" class="btn-secundario" id="btn-perfil">Meu perfil</button>
+      <button class="btn-sair" id="btn-sair">Sair</button>
+    </div>
+
+    <!-- Tela de Perfil -->
+    <div id="tela-perfil">
+      <h1>Meu perfil</h1>
+      <p id="perfil-usuario"></p>
+      <p id="perfil-status-corrente"></p>
+      <button type="button" class="btn-secundario" id="btn-toggle-corrente"></button>
+      <p id="perfil-status-poupanca"></p>
+      <button type="button" class="btn-secundario" id="btn-toggle-poupanca"></button>
+      <p class="erro" id="erro-perfil"></p>
+      <button type="button" class="btn-secundario" id="btn-voltar-perfil">Voltar</button>
+    </div>
+
+    <!-- Tela de Transferencia -->
+    <div id="tela-transferencia">
+      <h1>Transferencia</h1>
+
+      <form id="transferencia-form">
+        <label for="transferencia-destinatario">Usuario destinatario</label>
+        <input type="text" id="transferencia-destinatario" placeholder="Digite o usuario destinatario" required>
+
+        <label for="transferencia-conta-origem">Conta de origem</label>
+        <select id="transferencia-conta-origem" required></select>
+
+        <label for="transferencia-conta-destino">Conta de destino</label>
+        <select id="transferencia-conta-destino" required>
+          <option value="corrente">Conta corrente</option>
+          <option value="poupanca">Conta poupanca</option>
+        </select>
+
+        <label for="valor-transferencia">Valor</label>
+        <input type="number" id="valor-transferencia" placeholder="Digite o valor" step="0.01" min="0" required>
+
+        <p class="erro" id="erro-transferencia"></p>
+        <p class="sucesso" id="sucesso-transferencia" style="display:none;"></p>
+
+        <button type="submit">Transferir</button>
+      </form>
+
+      <button type="button" class="btn-secundario" id="btn-voltar-transferencia">Voltar</button>
+    </div>
+
+    <!-- Tela de Conta poupanca -->
+    <div id="tela-conta-poupanca">
+      <h1>Conta poupança</h1>
+      <p id="saldo-poupanca" style="display:none;"></p>
+
+      <form id="saque-poupanca-form">
+        <label for="valor-saque-poupanca">Valor do saque</label>
+        <input type="number" id="valor-saque-poupanca" placeholder="Digite o valor" step="0.01" min="0" required>
+        <p class="erro" id="erro-saque-poupanca"></p>
+        <button type="submit">Sacar</button>
+      </form>
+
+      <form id="deposito-poupanca-form">
+        <label for="valor-deposito-poupanca">Valor do deposito</label>
+        <input type="number" id="valor-deposito-poupanca" placeholder="Digite o valor" step="0.01" min="0" required>
+        <p class="erro" id="erro-deposito-poupanca"></p>
+        <button type="submit">Depositar</button>
+      </form>
+
+      <button type="button" class="btn-secundario" id="btn-extrato-poupanca">Extrato</button>
+      <button type="button" class="btn-secundario" id="btn-voltar-conta-poupanca">Voltar</button>
+    </div>
+
+    <!-- Tela de Extrato (conta corrente) -->
+    <div id="tela-extrato">
+      <div id="extrato">
+        <h1>Extrato</h1>
+        <p id="extrato-vazio" style="display:none;">Nenhuma movimentacao ainda.</p>
+        <ul id="extrato-lista"></ul>
+      </div>
+
+      <button type="button" class="btn-secundario" id="btn-voltar-extrato">Voltar</button>
+    </div>
+
+    <!-- Tela de Extrato (conta poupanca) -->
+    <div id="tela-extrato-poupanca">
+      <div id="extrato-poupanca">
+        <h1>Extrato</h1>
+        <p id="extrato-poupanca-vazio" style="display:none;">Nenhuma movimentacao ainda.</p>
+        <ul id="extrato-poupanca-lista"></ul>
+
+        <div id="extrato-poupanca-paginacao" style="display:none;">
+          <button type="button" class="btn-secundario" id="btn-extrato-poupanca-anterior">Anterior</button>
+          <span id="extrato-poupanca-pagina-atual"></span>
+          <button type="button" class="btn-secundario" id="btn-extrato-poupanca-proxima">Proxima</button>
+        </div>
+      </div>
+
+      <button type="button" class="btn-secundario" id="btn-voltar-extrato-poupanca">Voltar</button>
+    </div>
+
+    <!-- Tela de Cadastro -->
+    <div id="tela-cadastro">
+      <h1>Cadastro de conta</h1>
+      <form id="cadastro-form">
+        <label for="cad-username">Usuario</label>
+        <input type="text" id="cad-username" placeholder="Digite seu usuario" required autocomplete="username">
+        <!-- Padrao de validacao por campo: span de erro proprio, id = "erro-campo-<id-do-input>" -->
+        <span class="erro-campo" id="erro-campo-cad-username"></span>
+
+        <label for="cad-senha">Senha</label>
+        <input type="password" id="cad-senha" placeholder="Digite sua senha" required autocomplete="new-password">
+        <span class="erro-campo" id="erro-campo-cad-senha"></span>
+
+        <label for="cad-idade">Idade</label>
+        <input type="number" id="cad-idade" placeholder="Digite sua idade" required>
+        <span class="erro-campo" id="erro-campo-cad-idade"></span>
+
+        <label>Tipo de conta</label>
+        <div class="campo-checkbox">
+          <input type="checkbox" id="cad-tipo-conta-corrente">
+          <label for="cad-tipo-conta-corrente">Conta corrente</label>
+        </div>
+        <div class="campo-checkbox">
+          <input type="checkbox" id="cad-tipo-conta-poupanca">
+          <label for="cad-tipo-conta-poupanca">Conta poupanca</label>
+        </div>
+        <span class="erro-campo" id="erro-campo-cad-tipo-conta"></span>
+
+        <p class="erro" id="erro-cadastro">Preencha todos os campos.</p>
+
+        <button type="submit" id="btn-criar-conta">Criar conta</button>
+      </form>
+      <div id="cadastro-sucesso" style="display:none;">
+        <h1>Conta criada com sucesso</h1>
+        <button class="btn-sair" id="btn-voltar-login">Voltar para o login</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
