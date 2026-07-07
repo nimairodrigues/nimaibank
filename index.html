@@ -39,14 +39,14 @@
         <label for="valor-saque-corrente">Valor do saque</label>
         <input type="number" id="valor-saque-corrente" placeholder="Digite o valor" step="0.01" min="0" required>
         <p class="erro" id="erro-saque-corrente"></p>
-        <button type="submit">Sacar</button>
+        <button type="submit" id="btn-sacar-corrente">Sacar</button>
       </form>
 
       <form id="deposito-corrente-form">
         <label for="valor-deposito-corrente">Valor do deposito</label>
         <input type="number" id="valor-deposito-corrente" placeholder="Digite o valor" step="0.01" min="0" required>
         <p class="erro" id="erro-deposito-corrente"></p>
-        <button type="submit">Depositar</button>
+        <button type="submit" id="btn-depositar-corrente">Depositar</button>
       </form>
 
       <button type="button" class="btn-secundario" id="btn-extrato">Extrato</button>
@@ -54,7 +54,7 @@
       <button type="button" class="btn-secundario" id="btn-transferencia" style="display:none;">Transferir</button>
       <button type="button" class="btn-secundario" id="btn-transferencia-interna" style="display:none;">Transferir entre minhas contas</button>
       <button type="button" class="btn-secundario" id="btn-perfil">Meu perfil</button>
-      <button class="btn-sair" id="btn-sair">Sair</button>
+      <button class="btn-perigo" id="btn-sair">Sair</button>
     </div>
 
     <!-- Tela de Perfil -->
@@ -66,7 +66,7 @@
       <p id="perfil-status-poupanca"></p>
       <button type="button" class="btn-secundario" id="btn-toggle-poupanca"></button>
       <p class="erro" id="erro-perfil"></p>
-      <button type="button" class="btn-sair" id="btn-excluir-conta">Excluir conta</button>
+      <button type="button" class="btn-perigo" id="btn-excluir-conta">Excluir conta</button>
       <button type="button" class="btn-secundario" id="btn-voltar-perfil">Voltar</button>
     </div>
 
@@ -93,7 +93,7 @@
         <p class="erro" id="erro-transferencia"></p>
         <p class="sucesso" id="sucesso-transferencia" style="display:none;"></p>
 
-        <button type="submit">Transferir</button>
+        <button type="submit" id="btn-transferir">Transferir</button>
       </form>
 
       <button type="button" class="btn-secundario" id="btn-voltar-transferencia">Voltar</button>
@@ -116,7 +116,7 @@
         <p class="erro" id="erro-transferencia-interna"></p>
         <p class="sucesso" id="sucesso-transferencia-interna" style="display:none;"></p>
 
-        <button type="submit">Transferir</button>
+        <button type="submit" id="btn-transferir-interna">Transferir</button>
       </form>
 
       <button type="button" class="btn-secundario" id="btn-voltar-transferencia-interna">Voltar</button>
@@ -131,14 +131,14 @@
         <label for="valor-saque-poupanca">Valor do saque</label>
         <input type="number" id="valor-saque-poupanca" placeholder="Digite o valor" step="0.01" min="0" required>
         <p class="erro" id="erro-saque-poupanca"></p>
-        <button type="submit">Sacar</button>
+        <button type="submit" id="btn-sacar-poupanca">Sacar</button>
       </form>
 
       <form id="deposito-poupanca-form">
         <label for="valor-deposito-poupanca">Valor do deposito</label>
         <input type="number" id="valor-deposito-poupanca" placeholder="Digite o valor" step="0.01" min="0" required>
         <p class="erro" id="erro-deposito-poupanca"></p>
-        <button type="submit">Depositar</button>
+        <button type="submit" id="btn-depositar-poupanca">Depositar</button>
       </form>
 
       <button type="button" class="btn-secundario" id="btn-extrato-poupanca">Extrato</button>
@@ -207,7 +207,7 @@
       </form>
       <div id="cadastro-sucesso" style="display:none;">
         <h1>Conta criada com sucesso</h1>
-        <button class="btn-sair" id="btn-voltar-login">Voltar para o login</button>
+        <button class="btn-perigo" id="btn-voltar-login">Voltar para o login</button>
       </div>
     </div>
 

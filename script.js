@@ -42,6 +42,16 @@ function valorFormularioValido(valorTexto, valor) {
   return !!valorTexto && valor > 0;
 }
 
+// Exibe o saldo formatado em pt-BR no texto do elemento e mantem o valor cru
+// em data-saldo, para automacao nao precisar fazer parsing de string formatada.
+const formatadorSaldo = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+function exibirSaldo(id, rotulo, valor) {
+  const elemento = document.getElementById(id);
+  elemento.textContent = rotulo + formatadorSaldo.format(valor);
+  elemento.setAttribute('data-saldo', valor);
+}
+
 async function logar() {
   const username = document.getElementById('username').value.trim();
   const senha    = document.getElementById('senha').value.trim();
@@ -73,16 +83,12 @@ async function logar() {
     esconder('tela-login');
     document.getElementById('mensagem').textContent = 'Bem vindo ' + username;
 
-    const formatadorSaldo = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-    const saldoCorrente = document.getElementById('saldo-corrente');
-    const saldoPoupanca = document.getElementById('saldo-poupanca');
-
     if (conta.contaCorrente) {
-      saldoCorrente.textContent = 'Saldo conta corrente: ' + formatadorSaldo.format(conta.saldoCorrente);
+      exibirSaldo('saldo-corrente', 'Saldo conta corrente: ', conta.saldoCorrente);
     }
 
     if (conta.contaPoupanca) {
-      saldoPoupanca.textContent = 'Saldo conta poupanca: ' + formatadorSaldo.format(conta.saldoPoupanca);
+      exibirSaldo('saldo-poupanca', 'Saldo conta poupanca: ', conta.saldoPoupanca);
     }
 
     mostrar('tela-boas-vindas');
@@ -129,8 +135,7 @@ async function sacarCorrente() {
   esconder(erro);
   input.value = '';
 
-  const formatadorSaldo = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-  document.getElementById('saldo-corrente').textContent = 'Saldo conta corrente: ' + formatadorSaldo.format(dados.saldoCorrente);
+  exibirSaldo('saldo-corrente', 'Saldo conta corrente: ', dados.saldoCorrente);
 
   await carregarMovimentacoes(usuarioLogado);
   renderizarExtrato();
@@ -169,8 +174,7 @@ async function depositarCorrente() {
   esconder(erro);
   input.value = '';
 
-  const formatadorSaldo = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-  document.getElementById('saldo-corrente').textContent = 'Saldo conta corrente: ' + formatadorSaldo.format(dados.saldoCorrente);
+  exibirSaldo('saldo-corrente', 'Saldo conta corrente: ', dados.saldoCorrente);
 
   await carregarMovimentacoes(usuarioLogado);
   renderizarExtrato();
@@ -196,9 +200,9 @@ function renderizarExtratoLista(tipoConta, idLista, idVazio) {
 
   const formatadorValor = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
-  movimentacoes.forEach((mov, indice) => {
+  movimentacoes.forEach((mov) => {
     const item = document.createElement('li');
-    item.setAttribute('data-testid', `movimentacao-${indice}`);
+    item.setAttribute('data-testid', `movimentacao-${mov.id}`);
     const data = new Date(mov.criado_em.replace(' ', 'T') + 'Z').toLocaleString('pt-BR');
     const sinal = mov.tipo === 'entrada' ? '+' : '-';
     item.textContent = `${data} - ${mov.descricao || mov.tipo} (${sinal}${formatadorValor.format(mov.valor)})`;
@@ -232,6 +236,8 @@ function renderizarExtratoPoupanca() {
 
   definirVisivel(paginacao, movimentacoes.length > REGISTROS_POR_PAGINA_EXTRATO_POUPANCA);
   paginaAtualEl.textContent = `Pagina ${paginaAtualExtratoPoupanca} de ${totalPaginas}`;
+  paginaAtualEl.setAttribute('data-pagina-atual', paginaAtualExtratoPoupanca);
+  paginaAtualEl.setAttribute('data-total-paginas', totalPaginas);
   btnAnterior.disabled = paginaAtualExtratoPoupanca <= 1;
   btnProxima.disabled = paginaAtualExtratoPoupanca >= totalPaginas;
 
@@ -240,9 +246,9 @@ function renderizarExtratoPoupanca() {
 
   const formatadorValor = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
-  movimentacoesDaPagina.forEach((mov, indice) => {
+  movimentacoesDaPagina.forEach((mov) => {
     const item = document.createElement('li');
-    item.setAttribute('data-testid', `movimentacao-${indice}`);
+    item.setAttribute('data-testid', `movimentacao-${mov.id}`);
     const data = new Date(mov.criado_em.replace(' ', 'T') + 'Z').toLocaleString('pt-BR');
     const sinal = mov.tipo === 'entrada' ? '+' : '-';
     item.textContent = `${data} - ${mov.descricao || mov.tipo} (${sinal}${formatadorValor.format(mov.valor)})`;
@@ -348,6 +354,8 @@ function fecharPerfil() {
 async function ativarConta(tipo) {
   const erro = document.getElementById('erro-perfil');
 
+  erro.setAttribute('data-error-context', 'ativar-conta');
+
   if (tipo === 'corrente' && !contaCorrenteHabilitada && idadeLogada < IDADE_MINIMA_CONTA_CORRENTE) {
     erro.textContent = 'Conta corrente exige idade minima de 18 anos.';
     mostrar(erro);
@@ -380,6 +388,7 @@ async function ativarConta(tipo) {
 // caso o saldo desse tipo de conta nao esteja zerado.
 async function desativarConta(tipo) {
   const erro = document.getElementById('erro-perfil');
+  erro.setAttribute('data-error-context', 'desativar-conta');
 
   const { ok, dados, erroConexao } = await postJSON('/api/contas/' + encodeURIComponent(usuarioLogado) + '/desativar-conta', { tipo }, 'PUT');
 
@@ -412,10 +421,13 @@ function toggleConta(tipo) {
 // saldo corrente ou poupanca nao esteja zerado, para nao apagar dinheiro
 // sem aviso. Acao irreversivel: exige confirmacao explicita antes de chamar a API.
 async function excluirContaUsuario() {
+  // Dialogo nativo do browser: automacao (Selenium/Playwright/Cypress) precisa
+  // interceptar/tratar esse confirm() antes do clique, ou o fluxo trava aqui.
   const confirmado = confirm('Tem certeza que deseja excluir sua conta? Essa acao e irreversivel e remove todo o historico.');
   if (!confirmado) return;
 
   const erro = document.getElementById('erro-perfil');
+  erro.setAttribute('data-error-context', 'excluir-conta');
 
   const resposta = await fetch('/api/contas/' + encodeURIComponent(usuarioLogado), { method: 'DELETE' });
   const dados = await resposta.json();
@@ -444,8 +456,7 @@ async function aplicarRendimentoPoupanca() {
     if (!resposta.ok) return;
 
     const dados = await resposta.json();
-    const formatadorSaldo = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-    document.getElementById('saldo-poupanca').textContent = 'Saldo conta poupanca: ' + formatadorSaldo.format(dados.saldoPoupanca);
+    exibirSaldo('saldo-poupanca', 'Saldo conta poupanca: ', dados.saldoPoupanca);
   } catch (e) {
     // Rendimento e um complemento do saldo; falha ao aplicar nao deve
     // impedir o restante da tela de poupanca de funcionar.
@@ -521,8 +532,7 @@ async function sacarPoupanca() {
   esconder(erro);
   input.value = '';
 
-  const formatadorSaldo = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-  document.getElementById('saldo-poupanca').textContent = 'Saldo conta poupanca: ' + formatadorSaldo.format(dados.saldoPoupanca);
+  exibirSaldo('saldo-poupanca', 'Saldo conta poupanca: ', dados.saldoPoupanca);
 
   await carregarMovimentacoes(usuarioLogado);
   renderizarExtratoPoupanca();
@@ -561,8 +571,7 @@ async function depositarPoupanca() {
   esconder(erro);
   input.value = '';
 
-  const formatadorSaldo = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-  document.getElementById('saldo-poupanca').textContent = 'Saldo conta poupanca: ' + formatadorSaldo.format(dados.saldoPoupanca);
+  exibirSaldo('saldo-poupanca', 'Saldo conta poupanca: ', dados.saldoPoupanca);
 
   await carregarMovimentacoes(usuarioLogado);
   renderizarExtratoPoupanca();
@@ -645,11 +654,10 @@ async function transferir() {
   input.value = '';
   document.getElementById('transferencia-destinatario').value = '';
 
-  const formatadorSaldo = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   if (contaOrigem === 'corrente') {
-    document.getElementById('saldo-corrente').textContent = 'Saldo conta corrente: ' + formatadorSaldo.format(dados.saldoCorrente);
+    exibirSaldo('saldo-corrente', 'Saldo conta corrente: ', dados.saldoCorrente);
   } else {
-    document.getElementById('saldo-poupanca').textContent = 'Saldo conta poupanca: ' + formatadorSaldo.format(dados.saldoPoupanca);
+    exibirSaldo('saldo-poupanca', 'Saldo conta poupanca: ', dados.saldoPoupanca);
   }
 
   sucesso.textContent = 'Transferencia realizada com sucesso.';
@@ -717,9 +725,8 @@ async function transferirEntreMinhasContas() {
   esconder(erro);
   input.value = '';
 
-  const formatadorSaldo = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-  document.getElementById('saldo-corrente').textContent = 'Saldo conta corrente: ' + formatadorSaldo.format(dados.saldoCorrente);
-  document.getElementById('saldo-poupanca').textContent = 'Saldo conta poupanca: ' + formatadorSaldo.format(dados.saldoPoupanca);
+  exibirSaldo('saldo-corrente', 'Saldo conta corrente: ', dados.saldoCorrente);
+  exibirSaldo('saldo-poupanca', 'Saldo conta poupanca: ', dados.saldoPoupanca);
 
   sucesso.textContent = 'Transferencia realizada com sucesso.';
   mostrar(sucesso);

@@ -133,7 +133,7 @@ app.get('/api/contas/:username/movimentacoes', (req, res) => {
   if (!conta) return;
 
   const movimentacoes = db.prepare(
-    'SELECT conta_tipo, tipo, valor, descricao, criado_em FROM movimentacoes WHERE conta_id = ? ORDER BY criado_em DESC, id DESC'
+    'SELECT id, conta_tipo, tipo, valor, descricao, criado_em FROM movimentacoes WHERE conta_id = ? ORDER BY criado_em DESC, id DESC'
   ).all(conta.id);
 
   res.json(movimentacoes);
