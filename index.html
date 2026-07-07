@@ -52,6 +52,7 @@
       <button type="button" class="btn-secundario" id="btn-extrato">Extrato</button>
       <button type="button" class="btn-secundario" id="btn-conta-poupanca">Conta poupança</button>
       <button type="button" class="btn-secundario" id="btn-transferencia" style="display:none;">Transferir</button>
+      <button type="button" class="btn-secundario" id="btn-transferencia-interna" style="display:none;">Transferir entre minhas contas</button>
       <button type="button" class="btn-secundario" id="btn-perfil">Meu perfil</button>
       <button class="btn-sair" id="btn-sair">Sair</button>
     </div>
@@ -95,6 +96,29 @@
       </form>
 
       <button type="button" class="btn-secundario" id="btn-voltar-transferencia">Voltar</button>
+    </div>
+
+    <!-- Tela de Transferencia entre contas proprias -->
+    <div id="tela-transferencia-interna">
+      <h1>Transferencia entre minhas contas</h1>
+
+      <form id="transferencia-interna-form">
+        <label for="transferencia-interna-conta-origem">Transferir de</label>
+        <select id="transferencia-interna-conta-origem" required>
+          <option value="corrente">Conta corrente</option>
+          <option value="poupanca">Conta poupanca</option>
+        </select>
+
+        <label for="valor-transferencia-interna">Valor</label>
+        <input type="number" id="valor-transferencia-interna" placeholder="Digite o valor" step="0.01" min="0" required>
+
+        <p class="erro" id="erro-transferencia-interna"></p>
+        <p class="sucesso" id="sucesso-transferencia-interna" style="display:none;"></p>
+
+        <button type="submit">Transferir</button>
+      </form>
+
+      <button type="button" class="btn-secundario" id="btn-voltar-transferencia-interna">Voltar</button>
     </div>
 
     <!-- Tela de Conta poupanca -->

@@ -306,6 +306,10 @@ function atualizarAcessoBoasVindas() {
   // origem escolhida na tela seja a poupanca), entao a opcao so aparece
   // pra quem tem conta corrente utilizavel.
   definirVisivel('btn-transferencia', contaCorrenteOk);
+
+  // Transferencia entre as proprias contas so faz sentido (e so e aceita
+  // pelo backend) quando os DOIS tipos de conta estao habilitados e ativos.
+  definirVisivel('btn-transferencia-interna', contaCorrenteOk && contaPoupancaOk);
 }
 
 // Preenche o toggle de um tipo de conta: o mesmo botao vira "Ativar" ou
@@ -638,6 +642,75 @@ document.getElementById('transferencia-form').addEventListener('submit', functio
   transferir();
 });
 
+function abrirTransferenciaInterna() {
+  // So abre com os dois tipos de conta habilitados e ativos (mesma regra
+  // que controla a visibilidade do botao); protege contra acesso direto.
+  if (!(contaCorrenteHabilitada && contaCorrenteAtiva && contaPoupancaHabilitada && contaPoupancaAtiva)) return;
+
+  esconder('tela-boas-vindas');
+  mostrar('tela-transferencia-interna');
+}
+
+function fecharTransferenciaInterna() {
+  esconder('tela-transferencia-interna');
+  mostrar('tela-boas-vindas');
+  document.getElementById('valor-transferencia-interna').value = '';
+  esconder('erro-transferencia-interna');
+  esconder('sucesso-transferencia-interna');
+}
+
+document.getElementById('btn-transferencia-interna').addEventListener('click', abrirTransferenciaInterna);
+document.getElementById('btn-voltar-transferencia-interna').addEventListener('click', fecharTransferenciaInterna);
+
+async function transferirEntreMinhasContas() {
+  const contaOrigem = document.getElementById('transferencia-interna-conta-origem').value;
+  const input = document.getElementById('valor-transferencia-interna');
+  const valor = Number(input.value);
+  const erro = document.getElementById('erro-transferencia-interna');
+  const sucesso = document.getElementById('sucesso-transferencia-interna');
+
+  esconder(sucesso);
+
+  if (!valorFormularioValido(input.value, valor)) {
+    erro.textContent = 'Informe um valor valido para transferencia.';
+    mostrar(erro);
+    return;
+  }
+
+  const { ok, dados, erroConexao } = await postJSON('/api/contas/' + encodeURIComponent(usuarioLogado) + '/transferencia-interna', { contaOrigem, valor });
+
+  if (erroConexao) {
+    erro.textContent = 'Erro ao conectar com o servidor.';
+    mostrar(erro);
+    return;
+  }
+
+  if (!ok) {
+    erro.textContent = dados.erro || 'Nao foi possivel realizar a transferencia.';
+    mostrar(erro);
+    return;
+  }
+
+  esconder(erro);
+  input.value = '';
+
+  const formatadorSaldo = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+  document.getElementById('saldo-corrente').textContent = 'Saldo conta corrente: ' + formatadorSaldo.format(dados.saldoCorrente);
+  document.getElementById('saldo-poupanca').textContent = 'Saldo conta poupanca: ' + formatadorSaldo.format(dados.saldoPoupanca);
+
+  sucesso.textContent = 'Transferencia realizada com sucesso.';
+  mostrar(sucesso);
+
+  await carregarMovimentacoes(usuarioLogado);
+  renderizarExtrato();
+  renderizarExtratoPoupanca();
+}
+
+document.getElementById('transferencia-interna-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  transferirEntreMinhasContas();
+});
+
 function sair() {
   document.getElementById('username').value = '';
   document.getElementById('senha').value = '';
@@ -645,6 +718,7 @@ function sair() {
   esconder('tela-conta-poupanca');
   esconder('tela-extrato-poupanca');
   esconder('tela-transferencia');
+  esconder('tela-transferencia-interna');
   esconder('tela-boas-vindas');
   mostrar('tela-login');
 
@@ -655,6 +729,7 @@ function sair() {
   contaCorrenteAtiva = true;
   contaPoupancaAtiva = true;
   esconder('btn-transferencia');
+  esconder('btn-transferencia-interna');
   movimentacoesCache = [];
   document.getElementById('extrato-lista').innerHTML = '';
   esconder('extrato-vazio');

@@ -25,6 +25,7 @@ Documentação dos endpoints do backend (`server.js`). Todas as rotas recebem e 
   - [Aplicar rendimento da poupança](#aplicar-rendimento-da-poupança)
 - [Transferências](#transferências)
   - [Transferir para outra conta](#transferir-para-outra-conta)
+  - [Transferir entre as próprias contas](#transferir-entre-as-próprias-contas)
 
 ## Contas
 
@@ -495,3 +496,45 @@ Se `contaOrigem` for `"poupanca"`, a resposta traz `saldoPoupanca` em vez de `sa
 | `400` | Saldo insuficiente |
 | `404` | Conta de origem (`:username`) não encontrada |
 | `404` | Conta destinatária não encontrada |
+
+### Transferir entre as próprias contas
+
+`POST /api/contas/:username/transferencia-interna`
+
+Transfere um valor entre a conta corrente e a poupança do **mesmo** usuário (`:username`). Diferente da transferência para outra conta, aqui não existe destinatário: o destino é sempre o outro tipo de conta do próprio usuário, deduzido automaticamente a partir de `contaOrigem`.
+
+**Corpo da requisição:**
+
+```json
+{
+  "contaOrigem": "corrente",
+  "valor": 100
+}
+```
+
+**Regras:**
+
+- `contaOrigem` deve ser `"corrente"` ou `"poupanca"` — define de qual saldo o valor sai; o destino é sempre o outro tipo.
+- Só é permitida se o usuário tiver **os dois tipos de conta** (corrente e poupança) habilitados **e** ativos. Ter apenas um dos dois tipos bloqueia a funcionalidade inteira (não há para onde, ou de onde, mover o dinheiro).
+- `valor` precisa ser um número maior que zero.
+- `valor` não pode ser maior que o saldo disponível na conta de origem.
+- Débito na origem e crédito no destino ocorrem na mesma transação atômica.
+- São registradas duas movimentações: uma saída na origem (descrição "Transferencia interna para conta corrente"/"Transferencia interna para conta poupanca") e uma entrada no destino (descrição "Transferencia interna de conta corrente"/"Transferencia interna de conta poupanca").
+
+**Resposta:**
+
+```json
+{ "saldoCorrente": 400, "saldoPoupanca": 600 }
+```
+
+Ao contrário da transferência para outra conta, a resposta sempre traz os dois saldos atualizados, já que ambos pertencem ao mesmo usuário e mudam juntos.
+
+**Erros:**
+
+| Status | Motivo |
+|---|---|
+| `400` | `contaOrigem` ausente ou diferente de `"corrente"`/`"poupanca"` |
+| `400` | Usuário não possui os dois tipos de conta habilitados e ativos |
+| `400` | Valor inválido (ausente, não numérico ou ≤ 0) |
+| `400` | Saldo insuficiente |
+| `404` | Conta não encontrada |

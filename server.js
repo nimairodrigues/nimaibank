@@ -21,6 +21,10 @@ function valorValido(valor) {
   return typeof valor === 'number' && valor > 0;
 }
 
+function nomeTipoConta(tipo) {
+  return tipo === 'corrente' ? 'conta corrente' : 'conta poupanca';
+}
+
 // Busca uma conta pelo username e ja responde 404 se nao encontrar. Retorna
 // null nesse caso (o chamador deve dar `return` em seguida).
 function buscarContaOu404(sql, username, res, msgNaoEncontrada = 'Conta nao encontrada.') {
@@ -321,6 +325,60 @@ app.post('/api/contas/:username/transferencia', (req, res) => {
   executarTransferencia(conta.id, contaDestinoRow.id, campoSaldo, novoSaldo, contaOrigem, campoSaldoDestino, contaDestino, valor, destinatario, req.params.username);
 
   res.json(contaOrigem === 'corrente' ? { saldoCorrente: novoSaldo } : { saldoPoupanca: novoSaldo });
+});
+
+// Transferencia entre as contas do proprio usuario (corrente <-> poupanca).
+// Diferente da transferencia para outro usuario, aqui so existe um destino
+// possivel: o outro tipo de conta do mesmo dono. Por isso a rota recebe
+// apenas a origem, nao um par origem/destino.
+const executarTransferenciaInterna = db.transaction((contaId, campoSaldoOrigem, novoSaldoOrigem, contaTipoOrigem, campoSaldoDestino, contaTipoDestino, valor) => {
+  db.prepare(`UPDATE contas SET ${campoSaldoOrigem} = ? WHERE id = ?`).run(novoSaldoOrigem, contaId);
+  db.prepare(`UPDATE contas SET ${campoSaldoDestino} = ${campoSaldoDestino} + ? WHERE id = ?`).run(valor, contaId);
+  registrarMovimentacao(contaId, contaTipoOrigem, 'saida', valor, `Transferencia interna para ${nomeTipoConta(contaTipoDestino)}`);
+  registrarMovimentacao(contaId, contaTipoDestino, 'entrada', valor, `Transferencia interna de ${nomeTipoConta(contaTipoOrigem)}`);
+});
+
+app.post('/api/contas/:username/transferencia-interna', (req, res) => {
+  const { contaOrigem, valor } = req.body || {};
+
+  if (contaOrigem !== 'corrente' && contaOrigem !== 'poupanca') {
+    return res.status(400).json({ erro: 'Informe uma conta de origem valida ("corrente" ou "poupanca").' });
+  }
+
+  const conta = buscarContaOu404(
+    'SELECT id, conta_corrente, conta_poupanca, saldo_corrente, saldo_poupanca, conta_corrente_ativa, conta_poupanca_ativa FROM contas WHERE username = ?',
+    req.params.username, res
+  );
+  if (!conta) return;
+
+  // So e permitido transferir entre as proprias contas se os DOIS tipos
+  // estiverem habilitados e ativos — com apenas um tipo de conta nao ha
+  // para onde (ou de onde) mover o dinheiro.
+  const ambosHabilitadosEAtivos = conta.conta_corrente && conta.conta_corrente_ativa && conta.conta_poupanca && conta.conta_poupanca_ativa;
+  if (!ambosHabilitadosEAtivos) {
+    return res.status(400).json({ erro: 'Transferencia entre suas contas exige conta corrente e poupanca habilitadas e ativas.' });
+  }
+
+  if (!valorValido(valor)) {
+    return res.status(400).json({ erro: 'Informe um valor valido para transferencia.' });
+  }
+
+  const campoSaldoOrigem = contaOrigem === 'corrente' ? 'saldo_corrente' : 'saldo_poupanca';
+  const saldoAtual = conta[campoSaldoOrigem];
+  if (valor > saldoAtual) {
+    return res.status(400).json({ erro: 'Saldo insuficiente.' });
+  }
+
+  const contaDestino = contaOrigem === 'corrente' ? 'poupanca' : 'corrente';
+  const campoSaldoDestino = contaDestino === 'corrente' ? 'saldo_corrente' : 'saldo_poupanca';
+  const novoSaldoOrigem = saldoAtual - valor;
+
+  executarTransferenciaInterna(conta.id, campoSaldoOrigem, novoSaldoOrigem, contaOrigem, campoSaldoDestino, contaDestino, valor);
+
+  res.json({
+    saldoCorrente: contaOrigem === 'corrente' ? novoSaldoOrigem : conta.saldo_corrente + valor,
+    saldoPoupanca: contaOrigem === 'poupanca' ? novoSaldoOrigem : conta.saldo_poupanca + valor
+  });
 });
 
 // Ativa um tipo de conta: tanto habilita um tipo que o usuario ainda nao
