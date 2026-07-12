@@ -993,3 +993,4 @@ document.getElementById('cadastro-form').addEventListener('submit', function(e) 
 });
 
 document.getElementById('btn-voltar-login').addEventListener('click', voltarParaLogin);
+document.getElementById('btn-cancelar-cadastro').addEventListener('click', voltarParaLogin);
