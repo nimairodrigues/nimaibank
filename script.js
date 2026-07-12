@@ -13,10 +13,38 @@ function definirVisivel(elementoOuId, visivel) {
 
 function mostrar(elementoOuId) {
   definirVisivel(elementoOuId, true);
+
+  // Reinicia a animacao de entrada (CSS puro) toda vez que o elemento passa
+  // a ficar visivel. Nao interfere no display, apenas da um feedback visual
+  // sutil de transicao entre telas/mensagens.
+  const elemento = typeof elementoOuId === 'string' ? document.getElementById(elementoOuId) : elementoOuId;
+  elemento.classList.remove('fade-in');
+  void elemento.offsetWidth;
+  elemento.classList.add('fade-in');
 }
 
 function esconder(elementoOuId) {
   definirVisivel(elementoOuId, false);
+}
+
+// Envolve uma acao assincrona (fetch) com um estado visual de carregamento
+// no botao correspondente: desabilita e mostra um spinner via CSS (classe
+// "carregando"), restaurando o estado original ao final, sucesso ou erro.
+// Nao altera a logica de negocio das funcoes chamadas, apenas o feedback.
+async function comCarregamento(botao, acao) {
+  if (!botao) {
+    await acao();
+    return;
+  }
+
+  botao.disabled = true;
+  botao.classList.add('carregando');
+  try {
+    await acao();
+  } finally {
+    botao.disabled = false;
+    botao.classList.remove('carregando');
+  }
 }
 
 // Centraliza fetch + parse do JSON de resposta + captura de erro de rede
@@ -143,7 +171,7 @@ async function sacarCorrente() {
 
 document.getElementById('saque-corrente-form').addEventListener('submit', function(e) {
   e.preventDefault();
-  sacarCorrente();
+  comCarregamento(document.getElementById('btn-sacar-corrente'), sacarCorrente);
 });
 
 async function depositarCorrente() {
@@ -182,7 +210,7 @@ async function depositarCorrente() {
 
 document.getElementById('deposito-corrente-form').addEventListener('submit', function(e) {
   e.preventDefault();
-  depositarCorrente();
+  comCarregamento(document.getElementById('btn-depositar-corrente'), depositarCorrente);
 });
 
 // Todas as movimentacoes (corrente + poupanca) ficam guardadas aqui apos o
@@ -280,7 +308,9 @@ function fecharExtrato() {
   mostrar('tela-boas-vindas');
 }
 
-document.getElementById('btn-extrato').addEventListener('click', abrirExtrato);
+document.getElementById('btn-extrato').addEventListener('click', function() {
+  comCarregamento(document.getElementById('btn-extrato'), abrirExtrato);
+});
 document.getElementById('btn-voltar-extrato').addEventListener('click', fecharExtrato);
 
 // Atualiza os textos de status e o botao de ativacao do tipo de conta que
@@ -444,9 +474,15 @@ async function excluirContaUsuario() {
 
 document.getElementById('btn-perfil').addEventListener('click', abrirPerfil);
 document.getElementById('btn-voltar-perfil').addEventListener('click', fecharPerfil);
-document.getElementById('btn-toggle-corrente').addEventListener('click', () => toggleConta('corrente'));
-document.getElementById('btn-toggle-poupanca').addEventListener('click', () => toggleConta('poupanca'));
-document.getElementById('btn-excluir-conta').addEventListener('click', excluirContaUsuario);
+document.getElementById('btn-toggle-corrente').addEventListener('click', function() {
+  comCarregamento(document.getElementById('btn-toggle-corrente'), () => toggleConta('corrente'));
+});
+document.getElementById('btn-toggle-poupanca').addEventListener('click', function() {
+  comCarregamento(document.getElementById('btn-toggle-poupanca'), () => toggleConta('poupanca'));
+});
+document.getElementById('btn-excluir-conta').addEventListener('click', function() {
+  comCarregamento(document.getElementById('btn-excluir-conta'), excluirContaUsuario);
+});
 
 async function aplicarRendimentoPoupanca() {
   try {
@@ -475,7 +511,9 @@ function fecharContaPoupanca() {
   mostrar('tela-boas-vindas');
 }
 
-document.getElementById('btn-conta-poupanca').addEventListener('click', abrirContaPoupanca);
+document.getElementById('btn-conta-poupanca').addEventListener('click', function() {
+  comCarregamento(document.getElementById('btn-conta-poupanca'), abrirContaPoupanca);
+});
 document.getElementById('btn-voltar-conta-poupanca').addEventListener('click', fecharContaPoupanca);
 
 async function abrirExtratoPoupanca() {
@@ -491,7 +529,9 @@ function fecharExtratoPoupanca() {
   mostrar('tela-conta-poupanca');
 }
 
-document.getElementById('btn-extrato-poupanca').addEventListener('click', abrirExtratoPoupanca);
+document.getElementById('btn-extrato-poupanca').addEventListener('click', function() {
+  comCarregamento(document.getElementById('btn-extrato-poupanca'), abrirExtratoPoupanca);
+});
 document.getElementById('btn-voltar-extrato-poupanca').addEventListener('click', fecharExtratoPoupanca);
 
 document.getElementById('btn-extrato-poupanca-anterior').addEventListener('click', function() {
@@ -540,7 +580,7 @@ async function sacarPoupanca() {
 
 document.getElementById('saque-poupanca-form').addEventListener('submit', function(e) {
   e.preventDefault();
-  sacarPoupanca();
+  comCarregamento(document.getElementById('btn-sacar-poupanca'), sacarPoupanca);
 });
 
 async function depositarPoupanca() {
@@ -579,7 +619,7 @@ async function depositarPoupanca() {
 
 document.getElementById('deposito-poupanca-form').addEventListener('submit', function(e) {
   e.preventDefault();
-  depositarPoupanca();
+  comCarregamento(document.getElementById('btn-depositar-poupanca'), depositarPoupanca);
 });
 
 function abrirTransferencia() {
@@ -670,7 +710,7 @@ async function transferir() {
 
 document.getElementById('transferencia-form').addEventListener('submit', function(e) {
   e.preventDefault();
-  transferir();
+  comCarregamento(document.getElementById('btn-transferir'), transferir);
 });
 
 function abrirTransferenciaInterna() {
@@ -738,7 +778,7 @@ async function transferirEntreMinhasContas() {
 
 document.getElementById('transferencia-interna-form').addEventListener('submit', function(e) {
   e.preventDefault();
-  transferirEntreMinhasContas();
+  comCarregamento(document.getElementById('btn-transferir-interna'), transferirEntreMinhasContas);
 });
 
 function sair() {
@@ -773,7 +813,7 @@ function sair() {
 
 document.getElementById('login-form').addEventListener('submit', function(e) {
   e.preventDefault();
-  logar();
+  comCarregamento(document.getElementById('btn-logar'), logar);
 });
 
 document.getElementById('btn-sair').addEventListener('click', sair);
@@ -949,7 +989,7 @@ document.getElementById('btn-ir-cadastro').addEventListener('click', irParaCadas
 
 document.getElementById('cadastro-form').addEventListener('submit', function(e) {
   e.preventDefault();
-  cadastrar();
+  comCarregamento(document.getElementById('btn-criar-conta'), cadastrar);
 });
 
 document.getElementById('btn-voltar-login').addEventListener('click', voltarParaLogin);
