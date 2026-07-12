@@ -750,6 +750,8 @@ function sair() {
   esconder('tela-transferencia');
   esconder('tela-transferencia-interna');
   esconder('tela-boas-vindas');
+  esconder('tela-perfil');
+  esconder('tela-cadastro');
   mostrar('tela-login');
 
   usuarioLogado = '';
